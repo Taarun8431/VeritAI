@@ -1,76 +1,54 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        background: 'var(--bg-base)',
-        surface: 'var(--bg-surface)',
+        page: 'var(--bg-page)',
+        card: 'var(--bg-card)',
         elevated: 'var(--bg-elevated)',
-        border: 'var(--border)',
-        'border-hover': 'var(--border-hover)',
+        sidebar: 'var(--bg-sidebar)',
         primary: {
-          DEFAULT: 'var(--primary)',
+          DEFAULT: '#7c3aed',
+          dark: '#4f46e5',
           light: 'var(--primary-light)',
-          glow: 'var(--primary-glow)',
-        },
-        text: {
-          primary: 'var(--text-primary)',
-          secondary: 'var(--text-secondary)',
-          muted: 'var(--text-muted)',
         },
         verdict: {
-          true: 'var(--verdict-true)',
-          false: 'var(--verdict-false)',
-          partial: 'var(--verdict-partial)',
-          conflict: 'var(--verdict-conflict)',
-          unknown: 'var(--verdict-unknown)',
-          temporal: 'var(--verdict-temporal)',
-          'true-bg': 'var(--verdict-true-bg)',
-          'false-bg': 'var(--verdict-false-bg)',
-          'partial-bg': 'var(--verdict-partial-bg)',
-          'conflict-bg': 'var(--verdict-conflict-bg)',
-          'unknown-bg': 'var(--verdict-unknown-bg)',
-        }
+          true: '#10b981',
+          false: '#ef4444',
+          partial: '#f59e0b',
+          conflict: '#f97316',
+          unknown: '#64748b',
+          temporal: '#8b5cf6',
+        },
       },
       fontFamily: {
-        heading: ['"Space Grotesk"', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
+        sans: ['Roboto', 'sans-serif'],
+        display: ['Roboto', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       animation: {
-        'pulse-ring': 'pulse-ring 1.5s infinite',
+        'pulse-ring': 'pulseRing 1.5s ease-out infinite',
+        'shimmer': 'shimmer 1.5s infinite',
         'fade-up': 'fadeUp 0.4s ease forwards',
-        'drift-slow': 'drift 20s infinite alternate ease-in-out',
-        'drift-slower': 'drift 25s infinite alternate-reverse ease-in-out',
-        'draw-underline': 'draw-underline 1s ease forwards',
+        'count': 'count 1s ease forwards',
+        'spin-slow': 'spin 3s linear infinite',
       },
       keyframes: {
-        'pulse-ring': {
-          '0%': { boxShadow: '0 0 0 0 rgba(124, 58, 237, 0.4)' },
-          '100%': { boxShadow: '0 0 0 10px rgba(124, 58, 237, 0)' },
+        pulseRing: {
+          '0%': { boxShadow: '0 0 0 0 rgba(124,58,237,0.5)' },
+          '100%': { boxShadow: '0 0 0 8px rgba(124,58,237,0)' },
         },
-        'fadeUp': {
-          'from': { transform: 'translateY(16px)', opacity: '0' },
-          'to': { transform: 'translateY(0)', opacity: '1' },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
         },
-        'drift': {
-          'from': { transform: 'translate(0, 0)' },
-          'to': { transform: 'translate(40px, 40px)' },
+        fadeUp: {
+          from: { opacity: '0', transform: 'translateY(16px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
         },
-        'draw-underline': {
-          'from': { width: '0%' },
-          'to': { width: '100%' },
-        }
       },
-      boxShadow: {
-        'verit': 'var(--card-shadow)',
-        'verit-hover': 'var(--card-shadow-hover)',
-      }
     },
   },
   plugins: [],

@@ -2,47 +2,46 @@ import { motion } from 'framer-motion';
 
 interface ConfidenceRingProps {
   percentage: number;
-  color: string;
-  size?: number;
+  verdict?: string;
 }
 
-export function ConfidenceRing({ percentage, color, size = 60 }: ConfidenceRingProps) {
-  const strokeWidth = 4;
-  const radius = (size - strokeWidth) / 2;
+export function ConfidenceRing({ percentage, verdict }: ConfidenceRingProps) {
+  const isGood = verdict === 'True';
+  const isBad = verdict === 'False';
+  const color = isGood ? '#10b981' : isBad ? '#ef4444' : '#7c3aed';
+  
+  const radius = 26;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className="relative flex items-center justify-center flex-shrink-0" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
+    <div className="relative w-[60px] h-[60px] flex items-center justify-center shrink-0">
+      <svg className="w-full h-full -rotate-90">
         <circle
-          cx={size / 2}
-          cy={size / 2}
+          cx="30"
+          cy="30"
           r={radius}
-          stroke="var(--bg-elevated)"
-          strokeWidth={strokeWidth}
-          fill="none"
+          className="stroke-[var(--bg-elevated)] fill-none stroke-[4]"
         />
         <motion.circle
-          cx={size / 2}
-          cy={size / 2}
+          cx="30"
+          cy="30"
           r={radius}
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
-          fill="none"
+          transition={{ duration: 1, ease: "easeOut" }}
+          style={{ strokeDasharray: circumference }}
+          className="fill-none stroke-[4] transition-all duration-300"
+          stroke={color}
           strokeLinecap="round"
         />
       </svg>
-      <span 
-        className="absolute font-mono text-[10px] font-bold"
-        style={{ color }}
-      >
-        {Math.round(percentage)}%
-      </span>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-[14px] font-bold text-[var(--text-primary)] font-mono leading-none">
+          {percentage}
+          <span className="text-[10px] opacity-40">%</span>
+        </span>
+      </div>
     </div>
   );
 }

@@ -1,103 +1,91 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 import { ClaimWithVerdict } from '../types';
-import { buildHighlightSegments } from '../utils';
 
-const HIGHLIGHT_STYLES: Record<string, string> = {
-  "True": "border-verdict-true/40 text-text-primary",
-  "False": "border-verdict-false/40 text-text-primary",
-  "Partially True": "border-verdict-partial/40 text-text-primary",
-  "Conflicting": "border-verdict-conflict/40 text-text-primary",
-  "Unverifiable": "border-verdict-unknown/40 text-text-primary",
-  "Temporally Uncertain": "border-verdict-temporal/40 text-text-primary"
-};
+interface HighlightedTextProps {
+  text: string;
+  claims: ClaimWithVerdict[];
+}
 
 const VERDICT_COLORS: Record<string, string> = {
-  "True": "var(--verdict-true)",
-  "False": "var(--verdict-false)",
-  "Partially True": "var(--verdict-partial)",
-  "Conflicting": "var(--verdict-conflict)",
-  "Unverifiable": "var(--text-muted)",
-  "Temporally Uncertain": "var(--verdict-temporal)"
+  "True": "#10b981",
+  "False": "#ef4444",
+  "Partially True": "#f59e0b",
+  "Conflicting": "#f97316",
+  "Unverifiable": "#64748b",
+  "Temporally Uncertain": "#8b5cf6"
 };
 
-export function HighlightedText({ text, claims, onClaimClick }: { text: string, claims: ClaimWithVerdict[], onClaimClick?: (id: string) => void }) {
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
-  
-  if (!text) return null;
-  
-  const segments = buildHighlightSegments(text, claims);
-  const hoveredClaim = hoveredId ? claims.find(c => c.id === hoveredId) : null;
+const VERDICT_BG: Record<string, string> = {
+  "True": "rgba(16,185,129,0.12)",
+  "False": "rgba(239,68,68,0.12)",
+  "Partially True": "rgba(245,158,11,0.12)",
+  "Conflicting": "rgba(249,115,22,0.12)",
+  "Unverifiable": "rgba(100,116,139,0.08)",
+  "Temporally Uncertain": "rgba(139,92,246,0.12)"
+};
 
-  return (
-    <div className="relative">
-      <div className="font-body text-[15px] leading-[1.8] text-text-secondary selection:bg-primary/20">
-        {segments.map((seg, idx) => {
-           if (!seg.claimId) return <span key={idx}>{seg.text}</span>;
-           
-           const verdict = seg.verdict || "Unverifiable";
-           const styleClass = HIGHLIGHT_STYLES[verdict] || HIGHLIGHT_STYLES["Unverifiable"];
-           const color = VERDICT_COLORS[verdict] || "var(--text-muted)";
-           
-           return (
-              <motion.span 
-                key={`claim-${seg.claimId}-${idx}`} 
-                className={`inline border-b-2 cursor-pointer transition-all duration-200 ${styleClass} ${
-                  hoveredId && hoveredId !== seg.claimId ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'
-                }`}
-                style={{ backgroundColor: hoveredId === seg.claimId ? `rgba(${color.includes('true') ? '16, 185, 129' : color.includes('false') ? '239, 68, 68' : '124, 58, 237'}, 0.1)` : 'transparent' }}
-                onMouseEnter={() => setHoveredId(seg.claimId!)}
-                onMouseLeave={() => setHoveredId(null)}
-                onClick={() => onClaimClick && onClaimClick(seg.claimId!)}
-              >
-                {seg.text}
-              </motion.span>
-           );
-        })}
-      </div>
+export function HighlightedText({ text, claims }: HighlightedTextProps) {
+  if (!claims.length) return <p className="whitespace-pre-wrap">{text}</p>;
 
-      <AnimatePresence>
-        {hoveredClaim && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 5 }}
-            className="mt-6 verit-card p-4 shadow-xl border-primary/20 bg-elevated/90 backdrop-blur-md"
-          >
-             <div className="flex items-center gap-2 mb-2">
-               <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: VERDICT_COLORS[hoveredClaim.verdict || 'Unverifiable'] }} />
-               <span className="font-heading font-bold text-text-primary text-xs uppercase tracking-wider">{hoveredClaim.verdict || 'Analyzing...'}</span>
-               {hoveredClaim.confidence !== undefined && (
-                 <span className="text-[9px] font-mono text-text-muted ml-auto uppercase tracking-widest">
-                   {Math.round(hoveredClaim.confidence * 100)}% Confidence
-                 </span>
-               )}
-             </div>
-             {hoveredClaim.reasoning && (
-               <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">
-                 {hoveredClaim.reasoning}
-               </p>
-             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+  // Sort claims by their position in text to process linearly
+  const sortedClaims = [...claims]
+    .filter(c => c.status === 'verified')
+    .sort((a, b) => {
+      const indexA = text.indexOf(a.text);
+      const indexB = text.indexOf(b.text);
+      return indexA - indexB;
+    });
 
-      {/* LEGEND */}
-      <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 pt-6 border-t border-border">
-        {[
-          { label: "True", color: "var(--verdict-true)" },
-          { label: "False", color: "var(--verdict-false)" },
-          { label: "Partial", color: "var(--verdict-partial)" },
-          { label: "Conflict", color: "var(--verdict-conflict)" },
-          { label: "Temporal", color: "var(--verdict-temporal)" },
-          { label: "Unknown", color: "var(--text-muted)" }
-        ].map(item => (
-          <div key={item.label} className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }} />
-            <span className="text-[9px] font-mono font-bold text-text-muted uppercase tracking-widest">{item.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+
+  sortedClaims.forEach((claim, i) => {
+    const index = text.indexOf(claim.text, lastIndex);
+    if (index === -1) return;
+
+    // Add plain text before the claim
+    if (index > lastIndex) {
+      parts.push(text.substring(lastIndex, index));
+    }
+
+    const verdict = claim.verdict || "Unverifiable";
+    const color = VERDICT_COLORS[verdict];
+    const bg = VERDICT_BG[verdict];
+
+    // Add highlighted claim
+    parts.push(
+      <motion.span
+        key={claim.id}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 + i * 0.05 }}
+        onClick={() => {
+          const element = document.getElementById(`claim-${claim.id}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            element.classList.add('ring-2', 'ring-[#7c3aed]', 'ring-offset-4');
+            setTimeout(() => element.classList.remove('ring-2', 'ring-[#7c3aed]', 'ring-offset-4'), 2000);
+          }
+        }}
+        className="cursor-pointer px-1 rounded transition-all hover:brightness-110"
+        style={{ 
+          backgroundColor: bg,
+          borderBottom: `2px ${verdict === 'Unverifiable' ? 'dashed' : 'solid'} ${color}`
+        }}
+        title={`Click to view verification: ${verdict}`}
+      >
+        {claim.text}
+      </motion.span>
+    );
+
+    lastIndex = index + claim.text.length;
+  });
+
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push(text.substring(lastIndex));
+  }
+
+  return <div className="whitespace-pre-wrap leading-relaxed">{parts}</div>;
 }

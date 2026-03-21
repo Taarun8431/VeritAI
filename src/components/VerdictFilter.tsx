@@ -1,56 +1,43 @@
-import { Verdict } from '../types';
+interface VerdictFilterProps {
+  current: string;
+  setFilter: (v: string) => void;
+  counts: Record<string, number>;
+}
 
-type FilterOption = "All" | Verdict;
-
-export function VerdictFilter({ 
-  active, 
-  onChange,
-  counts
-}: { 
-  active: FilterOption, 
-  onChange: (v: FilterOption) => void,
-  counts: Partial<Record<FilterOption, number>>
-}) {
-  const options: FilterOption[] = ["All", "True", "False", "Partially True", "Conflicting", "Unverifiable", "Temporally Uncertain"];
-  
-  const COLORS: Record<string, string> = {
-    "All": "var(--primary)",
-    "True": "var(--verdict-true)",
-    "False": "var(--verdict-false)",
-    "Partially True": "var(--verdict-partial)",
-    "Conflicting": "var(--verdict-conflict)",
-    "Unverifiable": "var(--text-muted)",
-    "Temporally Uncertain": "var(--verdict-temporal)"
-  };
+export function VerdictFilter({ current, setFilter, counts }: VerdictFilterProps) {
+  const options = [
+    { id: 'all', label: 'All', color: 'var(--text-primary)' },
+    { id: 'True', label: 'True', color: '#10b981' },
+    { id: 'False', label: 'False', color: '#ef4444' },
+    { id: 'Partially True', label: 'Partial', color: '#f59e0b' },
+    { id: 'Conflicting', label: 'Conflict', color: '#f97316' },
+    { id: 'Unverifiable', label: 'Unknown', color: '#64748b' },
+  ];
 
   return (
-    <div className="flex flex-wrap gap-2 mb-6">
+    <div className="flex flex-wrap gap-1.5 p-1 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg">
       {options.map(opt => {
-        const count = counts[opt] || 0;
-        if (opt !== "All" && count === 0) return null;
+        const active = current === opt.id;
+        const count = opt.id === 'all' 
+          ? Object.values(counts).reduce((acc: number, val: number) => acc + val, 0) 
+          : counts[opt.id] || 0;
         
-        const isActive = active === opt;
-        const color = COLORS[opt] || "var(--primary)";
-
         return (
           <button
-            key={opt}
-            onClick={() => onChange(opt)}
-            className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border flex items-center gap-2 ${
-              isActive 
-                ? `bg-background border-primary text-primary shadow-sm dark:border-primary/40` 
-                : `bg-elevated border-border text-text-muted hover:border-border-hover hover:text-text-secondary`
-            }`}
+            key={opt.id}
+            onClick={() => setFilter(opt.id)}
+            className={`
+              px-3 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider transition-all
+              ${active 
+                ? 'bg-[var(--bg-card)] shadow-sm text-[#7c3aed] border border-[#7c3aed]/20' 
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card)]/50'}
+            `}
+            style={active ? { borderColor: `${opt.color}44`, color: opt.color } : {}}
           >
-            <div className={`w-1.5 h-1.5 rounded-full transition-all`} style={{ backgroundColor: isActive ? color : 'var(--border)' }} />
-            {opt}
-            <span className={`min-w-[16px] px-1 rounded-md text-[9px] font-mono transition-all ${
-               isActive ? 'bg-primary/10 text-primary' : 'bg-background text-text-muted'
-            }`}>
-              {count}
-            </span>
+            {opt.label}
+            <span className="ml-1.5 opacity-50 font-mono">{count}</span>
           </button>
-        )
+        );
       })}
     </div>
   );

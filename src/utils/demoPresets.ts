@@ -20,7 +20,7 @@ export const DEMO_PRESETS = [
   },
   {
     id: "conflicting",
-    label: "Conflicting Sources",
+    label: "Conflicting",
     type: "CONFLICTING",
     text: "The global economy grew by exactly 5.5% in 2023. Renewable energy accounted for 90% of all power generation worldwide last year according to the World Bank, while the IEA stated it was only 30%."
   }

@@ -1,118 +1,58 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { PipelineStage } from '../types';
+import { motion } from 'framer-motion';
 
-interface StepperProps {
-  stage: PipelineStage | 'idle';
-  progress: number;
-  claimsTotal: number;
-  claimsDone: number;
-  elapsed?: number;
+interface PipelineStepperProps {
+  stage: string;
 }
 
-export function PipelineStepper({ stage, progress, claimsTotal, claimsDone, elapsed }: StepperProps) {
-  const stageMap: Record<PipelineStage | 'idle', number> = {
-    'idle': -1,
-    'extracting': 0,
-    'searching': 1,
-    'verifying': 2,
-    'complete': 3
-  };
-  const currentIndex = stageMap[stage];
-  
+export function PipelineStepper({ stage }: PipelineStepperProps) {
   const steps = [
-    { label: "Extracting" },
-    { label: "Searching" },
-    { label: "Verifying" }
+    { id: 'extracting', label: 'Extracting Claims', icon: '🔍' },
+    { id: 'searching', label: 'Searching Evidence', icon: '🌐' },
+    { id: 'verifying', label: 'Verifying', icon: '🛡️' }
   ];
 
+  const currentStepIndex = 
+    stage === 'extracting' ? 0 :
+    stage === 'searching' ? 1 : 
+    stage === 'verifying' || stage === 'complete' ? 2 : -1;
+
   return (
-    <div className="w-full">
-      <div className="flex justify-between items-start relative">
-        {/* Connector lines backend */}
-        <div className="absolute top-[22px] left-[10%] right-[10%] h-[2px] bg-border z-0" />
-        
-        {/* Animated connector lines foreground */}
-        <div className="absolute top-[22px] left-[10%] right-[10%] h-[2px] z-0 overflow-hidden">
-          <motion.div 
-            initial={{ width: 0 }}
-            animate={{ width: `${Math.min(100, (Math.max(0, currentIndex) / 2) * 100)}%` }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="h-full bg-gradient-to-r from-primary to-blue-500"
-          />
-        </div>
+    <div className="relative w-full py-2">
+      <div className="absolute top-6 left-10 right-10 h-[2px] bg-[var(--border)] z-0" />
+      <motion.div 
+        initial={{ width: 0 }}
+        animate={{ width: `${Math.max(0, (currentStepIndex / (steps.length - 1)) * 100)}%` }}
+        className="absolute top-6 left-10 h-[2px] bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] z-0"
+      />
 
-        {steps.map((step, idx) => {
-          const isDone = currentIndex > idx;
-          const isActive = currentIndex === idx;
-          const isPending = currentIndex < idx;
-
+      <div className="flex justify-between items-start relative z-10 px-4">
+        {steps.map((step, i) => {
+          const isDone = i < currentStepIndex || stage === 'complete';
+          const isActive = i === currentStepIndex && stage !== 'complete';
+          
           return (
-            <div key={idx} className="flex flex-col items-center gap-3 z-10 w-24">
-              <div className="relative">
-                <AnimatePresence>
-                  {isActive && (
-                    <motion.div 
-                      layoutId="stepper-pulse"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 1.2 }}
-                      className="absolute -inset-1.5 rounded-full border-2 border-primary/40 animate-pulse-ring"
-                    />
-                  )}
-                </AnimatePresence>
-
-                <motion.div 
-                  initial={false}
-                  animate={{ 
-                    scale: isActive ? 1.1 : 1,
-                    backgroundColor: isDone ? 'var(--primary)' : isPending ? 'var(--bg-elevated)' : 'rgba(124, 58, 237, 0.1)',
-                    borderColor: isDone || isActive ? 'var(--primary)' : 'var(--border)'
-                  }}
-                  className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-colors duration-500`}
-                >
-                   {isDone ? (
-                      <motion.svg 
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="w-5 h-5 text-white" 
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </motion.svg>
-                   ) : isActive ? (
-                      <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                   ) : (
-                      <span className="text-text-muted">{idx + 1}</span>
-                   )}
-                </motion.div>
+            <div key={step.id} className="flex flex-col items-center gap-3">
+              <div className={`
+                w-10 h-10 rounded-full flex items-center justify-center font-mono font-bold text-sm
+                transition-all duration-300
+                ${isDone ? 'bg-gradient-to-br from-[#7c3aed] to-[#4f46e5] text-white shadow-lg shadow-[#7c3aed]/40' :
+                  isActive ? 'bg-[#7c3aed]/10 border-2 border-[#7c3aed] text-[#7c3aed] shadow-[0_0_15px_rgba(124,58,237,0.3)]' :
+                  'bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-muted)]'}
+              `}>
+                {isDone ? (
+                  <motion.svg initial={{ scale: 0.5 }} animate={{ scale: 1.2 }} className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </motion.svg>
+                ) : (
+                  isActive ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : (i + 1)
+                )}
               </div>
-
-              <span className={`text-[10px] font-bold uppercase tracking-[0.15em] transition-colors duration-500 ${
-                isActive ? 'text-text-primary' : isDone ? 'text-primary' : 'text-text-muted'
-              }`}>
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${isActive ? 'text-[#7c3aed]' : isDone ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
                 {step.label}
               </span>
             </div>
           );
         })}
-      </div>
-
-      {/* PROGRESS BAR */}
-      <div className="mt-8 space-y-3">
-        <div className="w-full h-1.5 bg-elevated rounded-full overflow-hidden">
-          <motion.div 
-            initial={{ width: 0 }}
-            animate={{ width: `${Math.max(2, progress * 100)}%` }}
-            transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-            className="h-full bg-gradient-to-r from-primary via-indigo-500 to-blue-500"
-          />
-        </div>
-        
-        <div className="flex justify-between items-center font-mono text-[10px] text-text-muted uppercase tracking-widest">
-           <div>{Math.round(progress * 100)}% Complete</div>
-           <div className="text-text-secondary">Analyzing... {elapsed?.toFixed(1) || '0.0'}s</div>
-           <div>{claimsDone} of {claimsTotal} Claims</div>
-        </div>
       </div>
     </div>
   );

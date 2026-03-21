@@ -5,18 +5,17 @@ import { InputPage } from './pages/InputPage';
 import { AnalysisPage } from './pages/AnalysisPage';
 import { ResultsPage } from './pages/ResultsPage';
 import { Header } from './components/Header';
-
+import { Sidebar } from './components/Sidebar';
 import { ToastContainer } from './components/Toast';
 import { AnimatePresence, motion } from 'framer-motion';
 
 function App() {
   const { state, stats, isRunning, verify, reset } = usePipeline();
   const { toasts, dismissToast } = useToasts();
-
+  
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('veritai-theme');
-    if (saved) return saved === 'dark';
-    return true; // default dark
+    return saved ? saved === 'dark' : false;
   });
 
   useEffect(() => {
@@ -24,36 +23,52 @@ function App() {
     localStorage.setItem('veritai-theme', isDark ? 'dark' : 'light');
   }, [isDark]);
 
-  let content;
-  if (state.stage === 'idle') {
-    content = <InputPage key="input" onVerify={verify} isRunning={isRunning} />;
-  } else if (state.stage === 'complete') {
-    content = <ResultsPage key="results" state={state} stats={stats} onReset={reset} />;
-  } else {
-    content = <AnalysisPage key="analysis" state={state} />;
-  }
+  const screen = state.stage === 'idle' ? 'input' : 
+                 state.stage === 'complete' ? 'results' : 'analysis';
+
+  const getPageTitle = (s: string) => {
+    if (s === 'input') return 'Dashboard';
+    if (s === 'analysis') return 'Analyzing...';
+    return 'Verification Report';
+  };
+
+  const getBreadcrumb = (s: string) => {
+    if (s === 'input') return 'VERITAI / DASHBOARD';
+    if (s === 'analysis') return 'VERITAI / VERIFY / ANALYZING';
+    return 'VERITAI / VERIFY / REPORT';
+  };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] font-body transition-colors duration-200">
-      <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen bg-[var(--bg-page)] text-[var(--text-primary)] font-sans transition-colors duration-200">
+      <Sidebar 
+        isDark={isDark} 
+        setIsDark={setIsDark} 
+        activeScreen={screen} 
+      />
+
+      <div className="ml-[220px] flex-1 flex flex-col min-h-screen">
         <Header 
-          isRunning={isRunning}
-          stats={stats}
           isDark={isDark}
-          setIsDark={setIsDark}
+          stage={state.stage}
+          claimsTotal={stats.total}
+          claimsDone={state.claims.filter(c => c.status === 'verified').length}
+          pageTitle={getPageTitle(screen)}
+          breadcrumb={getBreadcrumb(screen)}
         />
-        
-        <main className="flex-1 mt-16 p-6 w-full">
+
+        <main className="flex-1 mt-16 p-6">
           <AnimatePresence mode="wait">
             <motion.div
               key={state.stage}
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-              className="max-w-[1280px] mx-auto"
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.3 }}
+              className="w-full"
             >
-               {content}
+              {screen === 'input' && <InputPage key="input" onVerify={(text) => verify(text, false)} isRunning={isRunning} />}
+              {screen === 'analysis' && <AnalysisPage key="analysis" state={state} />}
+              {screen === 'results' && <ResultsPage key="results" state={state} stats={stats} onReset={reset} />}
             </motion.div>
           </AnimatePresence>
         </main>
