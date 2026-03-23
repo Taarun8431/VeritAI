@@ -1,0 +1,187 @@
+{
+  "accuracy": 50.0,
+  "total": 20,
+  "correct": 10,
+  "results": [
+    {
+      "claim": "Nikolaj Coster-Waldau appeared in the British drama series Borgen.",
+      "fever_label": "SUPPORTS",
+      "expected_verdict": "True",
+      "veritai_verdict": "False",
+      "confidence": 0.8,
+      "match": false,
+      "error": null
+    },
+    {
+      "claim": "Roman Atwood is a comedian.",
+      "fever_label": "SUPPORTS",
+      "expected_verdict": "True",
+      "veritai_verdict": "Partially True",
+      "confidence": 0.8,
+      "match": false,
+      "error": null
+    },
+    {
+      "claim": "The 2001 Indian Parliament attack did not kill people.",
+      "fever_label": "REFUTES",
+      "expected_verdict": "False",
+      "veritai_verdict": "Partially True",
+      "confidence": 0.7,
+      "match": false,
+      "error": null
+    },
+    {
+      "claim": "Multicultural London English is a dialect of London.",
+      "fever_label": "SUPPORTS",
+      "expected_verdict": "True",
+      "veritai_verdict": "Partially True",
+      "confidence": 0.8,
+      "match": false,
+      "error": null
+    },
+    {
+      "claim": "The Titanic sank in 1912.",
+      "fever_label": "SUPPORTS",
+      "expected_verdict": "True",
+      "veritai_verdict": "True",
+      "confidence": 1.0,
+      "match": true,
+      "error": null
+    },
+    {
+      "claim": "Neil Armstrong was the first person to walk on the Moon.",
+      "fever_label": "SUPPORTS",
+      "expected_verdict": "True",
+      "veritai_verdict": "True",
+      "confidence": 0.9,
+      "match": true,
+      "error": null
+    },
+    {
+      "claim": "The Great Wall of China is visible from space with the naked eye.",
+      "fever_label": "REFUTES",
+      "expected_verdict": "False",
+      "veritai_verdict": "False",
+      "confidence": 0.8,
+      "match": true,
+      "error": null
+    },
+    {
+      "claim": "Albert Einstein failed mathematics in school.",
+      "fever_label": "REFUTES",
+      "expected_verdict": "False",
+      "veritai_verdict": "False",
+      "confidence": 0.9,
+      "match": true,
+      "error": null
+    },
+    {
+      "claim": "Python programming language was created by Guido van Rossum.",
+      "fever_label": "SUPPORTS",
+      "expected_verdict": "True",
+      "veritai_verdict": "True",
+      "confidence": 1.0,
+      "match": true,
+      "error": null
+    },
+    {
+      "claim": "The Eiffel Tower is located in Berlin.",
+      "fever_label": "REFUTES",
+      "expected_verdict": "False",
+      "veritai_verdict": "False",
+      "confidence": 0.8,
+      "match": true,
+      "error": null
+    },
+    {
+      "claim": "Shakespeare was born in Stratford-upon-Avon.",
+      "fever_label": "SUPPORTS",
+      "expected_verdict": "True",
+      "veritai_verdict": "Partially True",
+      "confidence": 0.8,
+      "match": false,
+      "error": null
+    },
+    {
+      "claim": "The Amazon River is the longest river in the world.",
+      "fever_label": "REFUTES",
+      "expected_verdict": "False",
+      "veritai_verdict": "False",
+      "confidence": 0.8,
+      "match": true,
+      "error": null
+    },
+    {
+      "claim": "Water boils at 100 degrees Celsius at sea level.",
+      "fever_label": "SUPPORTS",
+      "expected_verdict": "True",
+      "veritai_verdict": "Partially True",
+      "confidence": 0.6,
+      "match": false,
+      "error": null
+    },
+    {
+      "claim": "The first iPhone was released in 2007.",
+      "fever_label": "SUPPORTS",
+      "expected_verdict": "True",
+      "veritai_verdict": "True",
+      "confidence": 0.9,
+      "match": true,
+      "error": null
+    },
+    {
+      "claim": "Adolf Hitler was born in Germany.",
+      "fever_label": "REFUTES",
+      "expected_verdict": "False",
+      "veritai_verdict": "True",
+      "confidence": 0.9,
+      "match": false,
+      "error": null
+    },
+    {
+      "claim": "The currency of Japan is the Yen.",
+      "fever_label": "SUPPORTS",
+      "expected_verdict": "True",
+      "veritai_verdict": "True",
+      "confidence": 0.9,
+      "match": true,
+      "error": null
+    },
+    {
+      "claim": "Mount Everest is the tallest mountain in the world.",
+      "fever_label": "SUPPORTS",
+      "expected_verdict": "True",
+      "veritai_verdict": "Unverifiable",
+      "confidence": 0.0,
+      "match": false,
+      "error": "'dict' object has no attribute 'verdict'"
+    },
+    {
+      "claim": "The human body has 206 bones.",
+      "fever_label": "SUPPORTS",
+      "expected_verdict": "True",
+      "veritai_verdict": "Partially True",
+      "confidence": 0.8,
+      "match": false,
+      "error": null
+    },
+    {
+      "claim": "The capital of Australia is Sydney.",
+      "fever_label": "REFUTES",
+      "expected_verdict": "False",
+      "veritai_verdict": "False",
+      "confidence": 0.9,
+      "match": true,
+      "error": null
+    },
+    {
+      "claim": "Google was founded in 1998.",
+      "fever_label": "SUPPORTS",
+      "expected_verdict": "True",
+      "veritai_verdict": "Partially True",
+      "confidence": 0.6,
+      "match": false,
+      "error": null
+    }
+  ]
+}

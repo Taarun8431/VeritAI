@@ -1,0 +1,1 @@
+from search_manager import tavily_pool, gemini_pool, groq_pool, init_cache; print(f'PASS: Tavily keys: {len(tavily_pool.keys)}, Gemini keys: {len(gemini_pool.keys)}, Groq keys: {len(groq_pool.keys)}')

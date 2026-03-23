@@ -1,0 +1,6 @@
+Warning: The provided HTTP header '"' does not look like a header?
+  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+                                 Dload  Upload  Total   Spent   Left   Speed
+  0      0   0      0   0      0      0      0                              0{"detail":[{"type":"missing","loc":["body"],"msg":"Field required","input":null}]}100     82 100     82   0      0    370      0                              0100     82 100     82   0      0    369      0                              0100     82 100     82   0      0    368      0                              0
+curl: (3) URL rejected: Port number was not a decimal number between 0 and 65535
+curl: (3) URL rejected: Malformed input to a URL function

@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeritAI - Stream Test</title>
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --surface: #1a1a1a;
+            --surface-hover: #252525;
+            --border: #333;
+            --accent: #7c6efc;
+            --accent-hover: #9b91fd;
+            --text-main: #eaeaea;
+            --text-muted: #888;
+            --success: #2ea043;
+            --error: #f85149;
+            --warning: #d29922;
+            --partial: #e3b341;
+            --conflict: #ff7b72;
+            --unverifiable: #6e7681;
+            --font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            line-height: 1.5;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1, h2, h3 { font-weight: 600; margin-bottom: 1rem; }
+        h1 { color: var(--accent); }
+        h1 span { color: var(--text-main); font-weight: 300; font-size: 0.8em; }
+
+        .banner {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: none;
+            font-weight: 500;
+        }
+        .banner.error { background: rgba(248, 81, 73, 0.1); border: 1px solid var(--error); color: var(--error); display: block; }
+        .banner.ai-score { background: rgba(124, 110, 252, 0.1); border: 1px solid var(--accent); color: var(--accent); display: block; }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+
+        @media (max-width: 900px) {
+            .container { grid-template-columns: 1fr; }
+        }
+
+        /* --- Section 1: Input --- */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .presets {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: var(--surface-hover);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        button.primary {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        button.primary:hover:not(:disabled) { background: var(--accent-hover); }
+        button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: var(--font-sans);
+            resize: vertical;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+        }
+
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .char-counter.amber { color: var(--warning); }
+        .char-counter.red { color: var(--error); }
+
+        /* --- Section 2: Pipeline Progress --- */
+        .progress-section {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+        .steps::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border);
+            z-index: 0;
+        }
+
+        .step {
+            position: relative;
+            z-index: 1;
+            background: var(--surface);
+            padding: 0 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+        }
+        .step .circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .step.active .circle { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 10px rgba(124,110,252,0.3); }
+        .step.active { color: var(--accent); }
+        .step.done .circle { background: var(--success); border-color: var(--success); color: var(--bg); }
+        
+        .progress-container {
+            width: 100%;
+            background: var(--bg);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .progress-text {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* --- Section 3: Live Event Log --- */
+        .log-container {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            height: 500px;
+            overflow-y: auto;
+            padding: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .log-entry {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.8rem;
+            border-left: 4px solid var(--border);
+        }
+
+        .log-entry.claim { border-left-color: #3182ce; }
+        .log-entry.verdict-True { border-left-color: var(--success); }
+        .log-entry.verdict-False { border-left-color: var(--error); }
+        .log-entry.verdict-Partially { border-left-color: var(--partial); }
+        .log-entry.verdict-Conflicting { border-left-color: var(--conflict); }
+        .log-entry.verdict-Unverifiable { border-left-color: var(--unverifiable); }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        .badge.blue { background: #3182ce; }
+        .badge.green { background: var(--success); }
+        .badge.red { background: var(--error); }
+        .badge.amber { background: var(--warning); }
+        .badge.orange { background: var(--conflict); }
+        .badge.grey { background: var(--unverifiable); }
+
+        .log-content { color: var(--text-main); margin-bottom: 0.5rem; }
+        .log-reasoning { font-size: 0.85rem; color: #a0a0a0; background: var(--bg); padding: 0.5rem; border-radius: 4px; border-left: 2px solid var(--border); }
+        .log-meta { font-size: 0.8rem; color: var(--accent); margin-top: 0.5rem; }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <div id="topBanner" class="banner"></div>
+
+    <h1>VeritAI <span>Stream Test</span></h1>
+    
+    <div class="container">
+        <!-- Section 1: Input -->
+        <div class="card">
+            <h2>Input Data</h2>
+            
+            <div class="presets">
+                <button onclick="fillPreset('t20')">T20 Cricket</button>
+                <button onclick="fillPreset('climate')">Climate Report</button>
+                <button onclick="fillPreset('ai')">AI Article</button>
+                <button onclick="fillPreset('mixed')">Mixed Facts</button>
+            </div>
+
+            <textarea id="articleText" placeholder="Paste article text here..." oninput="handleInput()"></textarea>
+            <div id="charCounter" class="char-counter">0 chars</div>
+
+            <input type="text" id="articleUrl" placeholder="Optional: URL to scrape instead of text" oninput="handleInput()">
+
+            <button id="verifyBtn" class="primary" onclick="startVerification()" disabled>Verify Now</button>
+            <button id="resetBtn" onclick="resetUI()" style="display:none; border-color:var(--border);">Reset Panel</button>
+        </div>
+
+        <!-- Section 2 & 3: Outputs -->
+        <div class="card" id="outputCard">
+            <!-- Pipeline Progress -->
+            <div id="progressSection" class="progress-section">
+                <div class="steps">
+                    <div id="step-extract" class="step"><div class="circle">1</div><span>Extracting</span></div>
+                    <div id="step-search" class="step"><div class="circle">2</div><span>Searching</span></div>
+                    <div id="step-verify" class="step"><div class="circle">3</div><span>Verifying</span></div>
+                </div>
+                
+                <div>
+                    <div class="progress-container"><div id="progressBar" class="progress-bar"></div></div>
+                    <div id="progressText" class="progress-text">Waiting to start...</div>
+                </div>
+            </div>
+
+            <!-- Live Event Log -->
+            <div id="eventLog" class="log-container">
+                <div style="color:var(--text-muted); text-align:center; padding-top:2rem;">Logs will appear here...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PRESETS = {
+            t20: "India won the 2024 T20 World Cup final held in Barbados, defeating South Africa. Virat Kohli scored a brilliant 76 runs in the final match, securing the Player of the Match award.",
+            climate: "The UN Climate Report released in 2023 states that global temperatures have risen by 1.1 degrees Celsius above pre-industrial levels. Renewable energy capacity grew by 50% globally last year.",
+            ai: "OpenAI announced GPT-4o in May 2024, capable of processing audio, vision, and text in real-time. It is highly likely to replace millions of coding jobs worldwide.",
+            mixed: "Albert Einstein won the Nobel Prize for discovering Relativity. Water boils at 100 degrees Celsius at sea level. The Eiffel Tower is located in London."
+        };
+
+        const els = {
+            text: document.getElementById('articleText'),
+            url: document.getElementById('articleUrl'),
+            counter: document.getElementById('charCounter'),
+            btn: document.getElementById('verifyBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            topBanner: document.getElementById('topBanner'),
+            progSec: document.getElementById('progressSection'),
+            progBar: document.getElementById('progressBar'),
+            progText: document.getElementById('progressText'),
+            log: document.getElementById('eventLog'),
+            stepExt: document.getElementById('step-extract'),
+            stepSch: document.getElementById('step-search'),
+            stepVer: document.getElementById('step-verify')
+        };
+
+        let state = {
+            totalClaims: 0,
+            verifiedClaims: 0,
+            extracting: false,
+            claims: {} // map claim_id to data
+        };
+
+        function fillPreset(key) {
+            els.text.value = PRESETS[key];
+            els.url.value = "";
+            handleInput();
+        }
+
+        function handleInput() {
+            const len = els.text.value.length;
+            els.counter.textContent = `${len} chars`;
+            els.counter.className = 'char-counter' + (len >= 4500 ? ' red' : (len >= 2000 ? ' amber' : ''));
+            
+            els.btn.disabled = (els.text.value.trim().length === 0 && els.url.value.trim().length === 0);
+        }
+
+        function showBanner(msg, type) {
+            els.topBanner.textContent = msg;
+            els.topBanner.className = `banner ${type}`;
+        }
+
+        function updateSteps(stage) {
+            if(stage === 'extract') {
+                els.stepExt.classList.add('active');
+            } else if (stage === 'search') {
+                els.stepExt.classList.remove('active');
+                els.stepExt.classList.add('done');
+                els.stepExt.querySelector('.circle').innerHTML = '✓';
+                els.stepSch.classList.add('active');
+            } else if (stage === 'verify') {
+                els.stepSch.classList.remove('active');
+                els.stepSch.classList.add('done');
+                els.stepSch.querySelector('.circle').innerHTML = '✓';
+                els.stepVer.classList.add('active');
+            } else if (stage === 'done') {
+                els.stepVer.classList.remove('active');
+                els.stepVer.classList.add('done');
+                els.stepVer.querySelector('.circle').innerHTML = '✓';
+            }
+        }
+
+        function appendLog(html) {
+            if(els.log.innerHTML.includes('Logs will appear here')) els.log.innerHTML = '';
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            els.log.appendChild(div.firstElementChild);
+            els.log.scrollTop = els.log.scrollHeight;
+        }
+
+        async function startVerification() {
+            const textVal = els.text.value.trim();
+            const urlVal = els.url.value.trim();
+            
+            els.btn.disabled = true;
+            els.text.disabled = true;
+            els.url.disabled = true;
+            els.topBanner.style.display = 'none';
+            els.progSec.style.display = 'flex';
+            els.log.innerHTML = '';
+            
+            state = { totalClaims: 0, verifiedClaims: 0, extracting: true, claims: {} };
+            updateSteps('extract');
+            els.progText.textContent = "Extracting claims from text...";
+
+            try {
+                const response = await fetch('http://localhost:8000/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: textVal, url: urlVal || null })
+                });
+
+                if(!response.ok) throw new Error("Backend returned " + response.status);
+                
+                updateSteps('search');
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        updateSteps('done');
+                        els.progText.textContent = "Verification Complete!";
+                        els.resetBtn.style.display = 'block';
+                        break;
+                    }
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    let boundary = buffer.indexOf('\n\n');
+                    
+                    while (boundary !== -1) {
+                        const payload = buffer.slice(0, boundary);
+                        buffer = buffer.slice(boundary + 2);
+                        
+                        if (payload.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(payload.slice(6));
+                                handleEvent(data);
+                            } catch (e) { console.error('JSON Parse error', e); }
+                        }
+                        boundary = buffer.indexOf('\n\n');
+                    }
+                }
+            } catch (err) {
+                showBanner("Backend not reachable — is uvicorn running? " + err.message, "error");
+                els.resetBtn.style.display = 'block';
+            }
+        }
+
+        function handleEvent(packet) {
+            const eventType = packet.event;
+            const data = packet.data;
+
+            if (eventType === "claim_extracted") {
+                state.totalClaims++;
+                state.claims[data.id] = data;
+                
+                els.progText.textContent = `${state.verifiedClaims} of ${state.totalClaims} claims verified`;
+                updateProgress();
+                
+                appendLog(`
+                    <div class="log-entry claim" id="log-${data.id}">
+                        <div class="log-header">
+                            <span>Claim ID: ${data.id.substring(0,6)}..</span>
+                            <span class="badge blue">Searching...</span>
+                        </div>
+                        <div class="log-content">${data.text}</div>
+                        <div class="log-meta">Type: ${data.type}</div>
+                    </div>
+                `);
+            } 
+            else if (eventType === "search_completed") {
+                // Could flash a searching indicator update here if needed
+            } 
+            else if (eventType === "retry") {
+                const logEl = document.getElementById(`log-${data.claim_id}`);
+                if(logEl) {
+                    const meta = logEl.querySelector('.log-meta');
+                    meta.innerHTML += `<br><em>Retrying search (Attempt ${data.retry_count}): ${data.refined_query}</em>`;
+                }
+            }
+            else if (eventType === "verdict") {
+                state.verifiedClaims++;
+                updateSteps('verify');
+                els.progText.textContent = `${state.verifiedClaims} of ${state.totalClaims} claims verified`;
+                updateProgress();
+
+                const logEl = document.getElementById(`log-${data.claim_id}`);
+                if(logEl) {
+                    
+                    let vColor = "grey";
+                    if(data.verdict.startsWith("True")) vColor = "green";
+                    else if(data.verdict.startsWith("False")) vColor = "red";
+                    else if(data.verdict.includes("Partially")) vColor = "amber";
+                    else if(data.verdict.includes("Conflicting")) vColor = "orange";
+
+                    logEl.className = `log-entry verdict-${data.verdict.split(' ')[0]}`;
+                    
+                    logEl.innerHTML = `
+                        <div class="log-header">
+                            <span>Claim ID: ${data.claim_id.substring(0,6)}..</span>
+                            <span class="badge ${vColor}">${data.verdict} (${(data.confidence * 100).toFixed(0)}%)</span>
+                        </div>
+                        <div class="log-content">${state.claims[data.claim_id]?.text || "Unknown claim"}</div>
+                        <div class="log-reasoning"><strong>Reasoning:</strong><br>${data.reasoning}</div>
+                    `;
+                }
+            }
+            else if (eventType === "ai_score") {
+                showBanner(`AI-generated probability: ${(data.probability).toFixed(1)}%`, "ai-score");
+            }
+            else if (eventType === "error") {
+                showBanner(data.message || "An error occurred", "error");
+            }
+        }
+
+        function updateProgress() {
+            if(state.totalClaims === 0) return;
+            const pct = (state.verifiedClaims / state.totalClaims) * 100;
+            els.progBar.style.width = `${pct}%`;
+        }
+
+        function resetUI() {
+            els.text.disabled = false;
+            els.url.disabled = false;
+            els.btn.disabled = false;
+            els.resetBtn.style.display = 'none';
+            els.progSec.style.display = 'none';
+            els.log.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding-top:2rem;">Logs will appear here...</div>';
+            
+            // Reset steps
+            ['stepExt', 'stepSch', 'stepVer'].forEach(k => {
+                els[k].className = 'step';
+                els[k].querySelector('.circle').innerHTML = (k==='stepExt'?1:k==='stepSch'?2:3);
+            });
+            els.progBar.style.width = '0%';
+            els.topBanner.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
