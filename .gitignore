@@ -1,0 +1,4 @@
+.env
+search_cache.db
+__pycache__/
+*.pyc
