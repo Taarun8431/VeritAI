@@ -1,5 +1,6 @@
-import json
 import asyncio
+import json
+import logging
 from typing import List, cast
 
 from models import ClaimObject, EvidenceObject
@@ -113,8 +114,14 @@ async def search_claim(claim: ClaimObject) -> List[EvidenceObject]:
         
     return evidences
 
-async def search_all_claims(claims: List[ClaimObject]) -> List[List[EvidenceObject]]:
-    """Runs search_claim on all provided claims concurrently."""
-    tasks = [search_claim(claim) for claim in claims]
-    # Return a list of evidences for each claim
-    return await asyncio.gather(*tasks)
+async def search_all_claims(claims: list) -> dict:
+    tasks = [search_claim(c) for c in claims]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    evidence_map = {}
+    for claim, result in zip(claims, results):
+        if isinstance(result, Exception):
+            logging.error(f"[search_all_claims] Error for {claim.id}: {result}")
+            evidence_map[claim.id] = []
+        else:
+            evidence_map[claim.id] = result or []
+    return evidence_map
