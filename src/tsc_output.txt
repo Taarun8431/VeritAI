@@ -1,4 +1,0 @@
-components/Sidebar.tsx(1,1): error TS6133: 'motion' is declared but its value is never read.
-components/VerdictFilter.tsx(7,59): error TS6133: 'isCompact' is declared but its value is never read.
-pages/InputPage.tsx(1,33): error TS6133: 'useEffect' is declared but its value is never read.
-utils/demoPresets.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
